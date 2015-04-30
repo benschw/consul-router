@@ -22,7 +22,7 @@ func getConfig() (string, string, string, string) {
 }
 
 func main() {
-	nsIp, nsPort, target, domain := getConfig
+	nsIp, nsPort, target, domain := getConfig()
 
 	var lb AddressGetter
 	if nsIp == "" {
