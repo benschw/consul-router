@@ -40,7 +40,7 @@ func (m *SrvRecordRequestMapper) getServiceKey(fullHost string) (string, error) 
 func (m *SrvRecordRequestMapper) getAddress(host string) (dns.Address, error) {
 	svcKey, err := m.getServiceKey(host)
 	if err != nil {
-		return dns.Address{}, err
+		return dns.Address{}, fmt.Sprintf("Unable to determine service key from host '%s'", host)
 	}
 	address := fmt.Sprintf("%s.%s", svcKey, m.Target)
 	log.Printf("Lookup: %s", address)
