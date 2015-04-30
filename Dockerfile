@@ -1,7 +1,7 @@
 FROM benschw/litefs
 
-ADD consul-router /usr/bin/consul-router
+ADD srv-proxy /usr/bin/srv-proxy
 
 EXPOSE 8080
 
-ENTRYPOINT /usr/bin/consul-router
+ENTRYPOINT /usr/bin/srv-proxy
