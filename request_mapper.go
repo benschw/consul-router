@@ -54,6 +54,6 @@ func (m *SrvRecordRequestMapper) MapRequest(req *http.Request) (string, error) {
 		return "", fmt.Errorf("Not Found: %s %s %s", req.Method, req.RemoteAddr, req.URL)
 	}
 
-	log.Printf("%s %s %s --> http://%s:%d", req.Method, req.RemoteAddr, req.URL, address.Address, address.Port)
+	log.Printf("%s %s%s --> %s http://%s:%d", req.Method, req.RemoteAddr, req.URL, req.Method, address.Address, address.Port)
 	return fmt.Sprintf("http://%s:%d", address.Address, address.Port), nil
 }
