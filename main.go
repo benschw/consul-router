@@ -1,60 +1,45 @@
 package main
 
 import (
-    "github.com/AaronO/gogo-proxy"
-      "net/http"
-      "fmt"
-      "errors"
-      "github.com/hashicorp/consul/api"
-      "strings"
-      "math/rand"
-      "log"
-    )
+	"net/http"
+	"os"
+
+	"github.com/AaronO/gogo-proxy"
+	"github.com/benschw/dns-clb-go/clb"
+)
+
+func getConfig() (string, string, string, string) {
+	nsIp := os.Getenv("NS_IP")     // use /etc/resolv.conf if not set
+	nsPort := os.Getenv("NS_PORT") // 53
+	target := os.Getenv("TARGET")  // service.consul
+	domain := os.Getenv("DOMAIN")  // edge
+
+	if nsPort == "" {
+		nsPort = "53"
+	}
+
+	return nsIp, nsPort, target, domain
+}
 
 func main() {
-  //consulUrl := os.Getenv("CONSUL_HTTP_ADDR")
-  client, _ := api.NewClient(api.DefaultConfig())
-  kv := client.KV()
-  health := client.Health()
+	nsIp, nsPort, target, domain := getConfig
 
-  //fmt.Printf("%s\n", consulUrl)
-  p, _ := proxy.New(proxy.ProxyOptions{
-    Balancer: func(req *http.Request) (string, error) {
-      a := strings.Split(req.Host, ":")
-      pair, _, err := kv.Get("domain/"+a[0], nil)
-      if err != nil {
-          fmt.Println(err)
-      } else {
-        if pair != nil {
-          serviceConfig := strings.Split(string(pair.Value),":")
-          protocol := "http"
-          if len(serviceConfig)>1 {
-            protocol=serviceConfig[1] 
-          }
-          services, _ , err:=health.Service(serviceConfig[0], "", true, nil)
-          if err != nil {
-          } else {
-            serviceCount := len(services)
-            if serviceCount > 0 {
-              idx := rand.Intn(serviceCount)
-              port :=services[idx].Service.Port
-              address:=services[idx].Node.Address
-              //fmt.Printf("%v\n", port)
-              //fmt.Printf("%v\n", address)
-              log.Printf("%s %s %s --> %s %d", req.RemoteAddr, req.Method, req.URL, address, port)
-              return fmt.Sprintf("%s://%s:%d", protocol, address, port), nil
-            }
-          }
-        }
-      }
-      log.Printf("%s %s %s --> NO MATCH", req.RemoteAddr, req.Method, req.URL)
-      return "", errors.New("Domain not found") 
-    },
-    /*
-    ErrorHandler: func(rw http.ResponseWriter, req *http.Request, err error){
-      fmt.Fprintf(rw, "Domain not found: %s", err)
-    },
-    */
-  })
-  http.ListenAndServe(":8080", p)
+	var lb AddressGetter
+	if nsIp == "" {
+		lb = clb.NewDefaultClb(clb.RoundRobin)
+	} else {
+		lb = clb.NewClb(nsIp, nsPort, clb.RoundRobin)
+	}
+
+	requestMapper := &SrvRecordRequestMapper{
+		Lb:     lb,
+		Target: target,
+		Domain: domain,
+	}
+
+	p, _ := proxy.New(proxy.ProxyOptions{
+		Balancer: requestMapper.MapRequest,
+	})
+
+	http.ListenAndServe(":8080", p)
 }

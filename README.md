@@ -1,9 +1,9 @@
-Needs progrium/consul and progrium/registrator
+# consul-router
 
-```
-docker run -d -e CONSUL_HTTP_ADDR=192.168.59.103:8500 -p 7799:8080 jmcarbo/consul-router
-```
+based on [jmcarbo/consul-router](https://github.com/jmcarbo/consul-router)
 
-```
-curl -XPUT http://192.168.59.103:8500/v1/kv/domain/www.192.168.59.103.xip.io -d "isawesome"
-```
+	go build -o consul-router
+	docker build -t benschw/consul-router .
+	
+	docker run -d -e TARGET=service.consul -e DOMAIN=edge -p 80:8080 benschw/consul-router
+
