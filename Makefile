@@ -20,11 +20,11 @@ build:
 	mkdir -p build/output
 	mkdir -p build/root/usr/bin
 	mkdir -p build/root/etc/init.d
-	go build -o build/root/usr/bin/jsonfilter
+	go build -o build/root/usr/bin/srv-proxy
 	cp srv-proxy.init build/root/etc/init.d/srv-proxy
 
 install:
-	install -t /usr/bin build/root/usr/bin/jsonfilter
+	install -t /usr/bin build/root/usr/bin/srv-proxy
 
 clean:
 	rm -rf build
