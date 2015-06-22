@@ -22,6 +22,7 @@ build:
 	mkdir -p build/root/etc/init.d
 	go build -o build/root/usr/bin/srv-proxy
 	cp srv-proxy.init build/root/etc/init.d/srv-proxy
+	chmod 755 build/root/etc/init.d/srv-proxy
 
 install:
 	install -t /usr/bin build/root/usr/bin/srv-proxy
